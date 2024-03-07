@@ -1,3 +1,13 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+class YolovModel:
+    pass
+
+
+class DataDetect:
+    pass
+
+
+class DetectResult:
+    pass
