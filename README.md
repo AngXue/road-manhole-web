@@ -8,7 +8,6 @@
   - 模型参数数量 `modelParameter`
   - 模型大小 `modelSize`
 
-
 ## 接口
 
 ### 切换模型
