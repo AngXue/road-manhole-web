@@ -2,11 +2,11 @@
 
 ## 实体
 - YOLOV模型：
-  - 模型名 `modelName` 唯一值
-  - 模型储存路径 `modelPath`
-  - 模型算力 `modelAcid`
-  - 模型参数数量 `modelParameter`
-  - 模型大小 `modelSize`
+  - 模型名 `model_name` 唯一值
+  - 模型储存路径 `model_path`
+  - 模型算力 `model_acid`
+  - 模型参数数量 `model_parameter`
+  - 模型大小 `model_size`
 
 ## 接口
 
@@ -14,21 +14,21 @@
 - 查询模型：
   - `/models/getAvailableNames`
   - 无需参数
-  - 返回可用模型名列表 `List(<modelName>)`
+  - 返回可用模型名列表 `List(<model_name>)`
 - 选择模型：
   - `/models/selectModel`
-  - 传递模型名 `modelName`
+  - 传递模型名 `model_name`
   - 返回 `Dict({'result': True/False})`
 
 ### 模型参数预览
 - 查询模型概览：
   - `/models/getModelOverview`
-  - 传递模型名 `modelName`
-  - 返回 `Dict({'modelAcid': value, 'modelParameter': value, 'modelSize': value})`
+  - 传递模型名 `model_name`
+  - 返回 `Dict({'model_acid': value, 'model_parameter': value, 'model_size': value})`
 - 获取模型性能图：
   - `/models/getModelPerfor`
-  - 传递模型名 `modelName`
-  - 返回 `Dict({'labels_correlogram': modelPath/labels_correlogram', ...})`
+  - 传递模型名 `model_name`
+  - 返回 `Dict({'labels_correlogram': model_path/labels_correlogram', ...})`
 
 ### 数据预测
 - 选择数据集：
