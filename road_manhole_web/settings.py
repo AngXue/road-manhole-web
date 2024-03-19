@@ -37,8 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'visualize_data.apps.VisualizeDataConfig',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'visualize_data',
+    'accounts',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -77,8 +86,12 @@ WSGI_APPLICATION = 'road_manhole_web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'manhole_web',
+        'USER': 'root',
+        'PASSWORD': '$66A112n214g16',
+        'HOST': '127.0.0.1',
+        'PORT': '28496',
     }
 }
 
