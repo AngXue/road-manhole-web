@@ -39,15 +39,30 @@ class UserAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request):
-        user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            if user.is_staff or user.username == request.data.get('username', ''):
-                serializer.save()
-                return Response(serializer.data)
-            else:
+        # 从请求中获取要更新的用户名和密码
+        username_to_update = request.data.get('username')
+        new_password = request.data.get('password')
+
+        # 确定目标用户，默认为当前认证用户
+        if request.user.is_staff and username_to_update:
+            # 如果操作用户是管理员且指定了用户名，尝试获取该用户
+            try:
+                target_user = User.objects.get(username=username_to_update)
+            except User.DoesNotExist:
+                return Response({"detail": "指定的用户不存在。"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # 普通用户只能更新自己的密码
+            target_user = request.user
+            if username_to_update and username_to_update != request.user.username:
                 return Response({"detail": "没有权限更新其他用户的信息。"}, status=status.HTTP_403_FORBIDDEN)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # 更新密码
+        if new_password:
+            target_user.set_password(new_password)
+            target_user.save()
+            return Response({"message": "密码更新成功。"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "未提供新密码。"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
         try:

@@ -83,7 +83,7 @@
 - **返回**:
     - 成功: 返回状态码200和用户的Token。
     - 失败: 返回状态码400和错误信息。
-  - **实例**:
+- **实例**:
     >   /api-token-auth/ 发送POST请求
     ```json
     {
@@ -112,27 +112,41 @@
 - **方法**: `POST`
 - **参数**:
     - `action`: 必须，值为 "update"。
-    - `username`: 可选，用户的新用户名。
-    - 需要在请求头中携带Token进行认证。
+    - `username`: 可选，要更新信息的用户的用户名。**注意**：仅管理员可指定用户名更新其他用户的信息。
+    - `password`: 必须，用户的新密码。
+- **权限**:
+    - 普通用户：只能更新自己的密码，不能指定`username`参数。
+    - 管理员：可以指定`username`参数来更新指定用户的密码。
 - **返回**:
     - 成功: 返回状态码200和更新后的用户信息。
-    - 失败: 返回状态码400和错误信息。
+    - 失败: 返回状态码403表示没有权限更新其他用户的信息，状态码400表示请求参数错误或其他请求错误。
 - **实例**:
     > /api/user/ 发送POST请求，header中携带Token
-    Token例子：Key: Authorization, Value: Token 8d0f788d7e3d9d5575348ef9606c3979a1679245
+    例如：Key: Authorization, Value: Token 8d0f788d7e3d9d5575348ef9606c3979a1679245
     ```json
     {
       "action": "update",
-      "username": "test",
-      "password": "123456"
+      "password": "newpassword123"
     }
     ```
     > 成功返回
     ```json
     {
-      "id": 9,
-      "username": "test",
-      "role": "普通用户"
+      "message": "密码更新成功。"
+    }
+    ```
+- **实例**:
+    ```json
+    {
+      "action": "update",
+      "username": "otheruser",
+      "password": "newpassword123"
+    }
+    ```
+    > 成功返回
+    ```json
+    {
+      "message": "密码更新成功。"
     }
     ```
     > 失败返回
@@ -141,7 +155,10 @@
       "detail": "没有权限更新其他用户的信息。"
     }
     ```
-    > 失败返回 凡是需要认证的接口，如果没有携带Token，都会返回如下信息，后续不再重复
+
+### 注意
+
+- 需要认证的接口，如果请求没有携带Token或Token无效，都会返回如下信息：
     ```json
     {
       "detail": "Invalid token."

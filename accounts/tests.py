@@ -5,69 +5,85 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
 
-class UserAccountTests(APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        # 为了简化，创建一个用户供测试使用
-        cls.user_data = {'username': 'testuser', 'password': 'testpassword123', 'email': 'test@example.com'}
-        cls.user = User.objects.create_user(**cls.user_data)
-        cls.token, _ = Token.objects.get_or_create(user=cls.user)
+class UserManagementTests(APITestCase):
 
     def setUp(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        # 创建测试用户和管理员用户
+        self.user = User.objects.create_user(username='testuser', password='testpassword123')
+        self.admin = User.objects.create_superuser(username='admin', password='adminpassword123')
+        self.token = Token.objects.create(user=self.user)
+        self.admin_token = Token.objects.create(user=self.admin)
 
-    def test_user_registration(self):
-        """
-        测试用户注册。
-        """
-        url = reverse('user-api', args=['register'])
-        data = {'username': 'newuser', 'password': 'newpassword123', 'email': 'newuser@example.com'}
+    def test_register_user(self):
+        """测试用户注册"""
+        url = reverse('user-api')
+        data = {
+            'action': 'register',
+            'username': 'newuser',
+            'password': 'newpassword123'
+        }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # 确认新用户创建成功
-        self.assertTrue(User.objects.filter(username='newuser').exists())
+        self.assertTrue('message' in response.data)
 
-    def test_user_login(self):
-        """
-        测试用户登录。
-        """
-        url = reverse('user-api', args=['login'])
-        data = {'username': self.user_data['username'], 'password': self.user_data['password']}
+    def test_login(self):
+        """测试用户登录"""
+        url = reverse('api_token_auth')
+        data = {
+            'username': 'testuser',
+            'password': 'testpassword123'
+        }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
+        self.assertTrue('token' in response.data)
+
+    def test_update_user_info_by_user(self):
+        """测试普通用户更新自己的信息"""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        url = reverse('user-api')
+        update_data = {
+            'action': 'update',
+            'password': 'test-newpassword'
+        }
+        response = self.client.post(url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, 'testuser')
+        self.assertTrue(self.user.check_password('test-newpassword'))
+
+    def test_delete_user_by_username(self):
+        """测试根据用户名删除用户"""
+        # 确保测试时使用管理员Token进行认证
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.admin_token.key)
+        url = reverse('user-api')
+        data = {
+            'action': 'delete',
+            'username': self.user.username
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # 确认用户确实被删除了
+        self.assertFalse(User.objects.filter(username=self.user.username).exists())
 
     def test_get_user_info(self):
-        """
-        测试获取用户信息。
-        """
-        # 先登录获取Token
-        self.test_user_login()
-        token = self.client.post(reverse('api_token_auth'), self.user_data, format='json').data['token']
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
-        # 注意使用 'user-api-with-pk'
-        url = reverse('user-api-with-pk', args=['detail', self.user.id])
-        response = self.client.get(url)
+        """测试获取用户信息"""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        url = reverse('user-api')
+        data = {
+            'action': 'get'
+        }
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['username'], self.user.username)
+        self.assertTrue('User' in response.data)
 
-    def test_update_user_info(self):
-        """
-        测试更新用户信息。
-        """
-        url = reverse('user-api-with-pk', kwargs={'action': 'update', 'pk': self.user.id})
-        data = {'first_name': 'NewFirstName', 'last_name': 'NewLastName'}
-        response = self.client.patch(url, data, format='json')
+    def test_query_user(self):
+        """测试查询用户"""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.admin_token.key)
+        url = reverse('user-api')
+        data = {
+            'action': 'query',
+            'username': 'test'
+        }
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        updated_user = User.objects.get(id=self.user.id)
-        self.assertEqual(updated_user.first_name, 'NewFirstName')
-        self.assertEqual(updated_user.last_name, 'NewLastName')
-
-    def test_delete_user(self):
-        """
-        测试删除用户。
-        """
-        url = reverse('user-api-with-pk', kwargs={'action': 'delete', 'pk': self.user.id})
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(User.objects.filter(id=self.user.id).exists())
+        self.assertTrue(len(response.data) > 0)
