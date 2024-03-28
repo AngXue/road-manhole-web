@@ -1,62 +1,80 @@
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
-
-from .serializers import UserSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.serializers import AuthTokenSerializer
+from .serializers import UserRegisterSerializer, UserSerializer, UserLoginSerializer
+from django.contrib.auth.models import User
+from .models import UserProfile
 
 
-class UserAPI(APIView):
-    # 设置为任何人都可以访问注册接口
-    permission_classes_by_action = {
-        'register': (permissions.AllowAny,),
-        'login': (permissions.AllowAny,),
-        'logout': (permissions.IsAuthenticated,),
-    }
-
+class UserAPIView(APIView):
+    # 允许任何人访问注册接口，但登录后的操作需要认证
     def get_permissions(self):
-        # 检查self是否有action属性，如果没有，则设置为None
-        action = getattr(self, 'action', None)
+        if self.request.method == 'POST':
+            action = self.request.data.get('action')
+            if action == 'register':
+                return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
-        # 现在使用action变量来获取权限类列表
-        if action and action in self.permission_classes_by_action:
-            # 返回适用于当前 action 的权限类列表
-            return [permission() for permission in self.permission_classes_by_action[action]]
-        else:
-            # 如果当前 action 没有特定的权限设置，则返回默认权限设置
-            return [permission() for permission in self.permission_classes]
-
-    def post(self, request, action):
-        self.action = action
+    def post(self, request):
+        action = request.data.get('action')
         if action == 'register':
             return self.register(request)
-        elif action == 'login':
-            return self.login(request)
-        elif action == 'logout':
-            return self.logout(request)
+        elif action == 'update':
+            return self.update(request)
+        elif action == 'delete':
+            return self.delete(request)
+        elif action == 'get':
+            return self.get(request)
+        elif action == 'query':
+            return self.query(request)
         else:
-            return Response({"error": "Not a valid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "无效的操作"}, status=status.HTTP_400_BAD_REQUEST)
 
     def register(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+            user = UserRegisterSerializer(user).data
+            return Response({"message": "用户注册成功", "user": user}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def login(self, request):
-        serializer = AuthTokenSerializer(data=request.data)
+    def update(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            login(request, user)
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
+            if user.is_staff or user.username == request.data.get('username', ''):
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response({"detail": "没有权限更新其他用户的信息。"}, status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def logout(self, request):
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request):
+        try:
+            user_name = request.data.get('username')
+            user_to_delete = User.objects.get(username=user_name)
+            if request.user.is_staff or request.user == user_to_delete:
+                user_to_delete.delete()
+                return Response({"message": "用户删除成功。"}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"detail": "没有权限删除其他用户。"}, status=status.HTTP_403_FORBIDDEN)
+        except User.DoesNotExist:
+            return Response({"detail": "用户不存在。"}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request):
+        # 使用request.user直接获取当前认证的用户对象
+        user = request.user
+        if user.is_anonymous:
+            return Response({"detail": "未认证的用户。"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user = UserSerializer(user).data
+        return Response({"User": user}, status=status.HTTP_200_OK)
+
+    def query(self, request):
+        username = request.data.get('username')
+        users = User.objects.filter(username__icontains=username)
+        if request.user.is_staff:
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({"detail": "只有管理员可以查询用户。"}, status=status.HTTP_403_FORBIDDEN)

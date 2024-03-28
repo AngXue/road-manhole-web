@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
+
 class UserAccountTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -70,4 +71,3 @@ class UserAccountTests(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(User.objects.filter(id=self.user.id).exists())
-
