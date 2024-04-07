@@ -5,6 +5,8 @@ from .serializers import UserRegisterSerializer, UserSerializer, UserLoginSerial
 from django.contrib.auth.models import User
 from .models import UserProfile
 
+from visualize_data.ultralyticsapi.UseAndSave import model_run, save_results
+
 
 class UserAPIView(APIView):
     # 允许任何人访问注册接口，但登录后的操作需要认证
@@ -93,3 +95,48 @@ class UserAPIView(APIView):
             return Response(serializer.data)
         else:
             return Response({"detail": "只有管理员可以查询用户。"}, status=status.HTTP_403_FORBIDDEN)
+
+
+class UseModelAPIView(APIView):
+    def get_all_models(self, request):
+        """
+        获取所有模型
+        :param request:
+        :return:
+        """
+        # 调用clearml的接口获取所有模型
+        # TODO: 未实现
+        user = request.user
+        if user.is_anonymous:
+            return Response({"detail": "未认证的用户。"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return []
+
+    def predict_data(self, request):
+        """
+        预测数据
+        :param request:
+        :return: 预测结果
+        """
+        user = request.user
+        if user.is_anonymous:
+            return Response({"detail": "未认证的用户。"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data_path = request.data.get('data_path')
+        model_path = request.data.get('model_path')
+
+        results = model_run(model_path, data_path)
+
+        result_dir = 'data_path/test_results'
+        if os.path.exists(result_dir):
+            # 删除文件夹及其内容
+            shutil.rmtree(result_dir)
+        os.mkdir(result_dir)
+
+        # 保存所有对象检测结果至一个文件
+        results_txt = 'data_path/results.txt'
+        if os.path.exists(results_txt):
+            os.remove(results_txt)
+
+        # [{filename, cls_list}, ...]
+        return save_results(results, results_txt, result_dir)
