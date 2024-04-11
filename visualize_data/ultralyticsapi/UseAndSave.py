@@ -2,7 +2,22 @@ import os
 import torch
 import shutil
 from PIL import Image
+from pathlib import Path
 from ultralytics import YOLO
+
+
+def clear_directory(directory: Path):
+    """
+    清理指定目录，如果目录不存在，则先创建它。
+    """
+    if not directory.exists():
+        directory.mkdir(parents=True, exist_ok=True)
+    else:
+        for item in directory.iterdir():
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
 
 
 def model_run(model_path, data_path, conf=0.25, iou=0.45):
@@ -27,6 +42,9 @@ def save_results(results, result_txt_path, result_image_path):
     :return: 保存的文件名和类别
     """
     file_with_cls = []
+
+    if os.path.exists(result_txt_path):
+        os.remove(result_txt_path)
 
     with open(result_txt_path, 'a') as file:
         for i, r in enumerate(results):

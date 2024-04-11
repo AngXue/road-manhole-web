@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from visualize_data.ultralyticsapi.UseAndSave import model_run, save_results
+from visualize_data.ultralyticsapi.UseAndSave import model_run, save_results, clear_directory
 import os
 from pathlib import Path
 import shutil
@@ -21,6 +21,7 @@ def handle_uploaded_file(f, filename):
 
 def upload_and_infer(request):
     if request.method == 'POST':
+        clear_directory(Path('media/save/inferred_images'))
         files = request.FILES.getlist('myfiles')
         results_list = []
 
@@ -36,8 +37,30 @@ def upload_and_infer(request):
                     zip_ref.extractall(extract_path)
                 # 删除原压缩包
                 os.remove(uploaded_file_path)
-                # 执行批量推理
-                results = model_run(MODEL_PATH, extract_path)
+
+                # 解压后文件所在的目录
+                # 假设zip文件中的目录结构与zip文件名相同
+                extracted_folder_path = Path(extract_path) / Path(filename).stem
+
+                # 检查解压后是否存在这样的目录
+                if extracted_folder_path.is_dir():
+                    # 如果存在，则传递这个目录给模型
+                    results = model_run(MODEL_PATH, str(extracted_folder_path))
+                else:
+                    # 如果不存在，可能zip文件中直接就是文件，没有嵌套目录
+                    results = model_run(MODEL_PATH, extract_path)
+
+                # 删除解压后的文件夹和文件
+                if extracted_folder_path.exists():
+                    # 删除解压出来的文件夹
+                    shutil.rmtree(extracted_folder_path)
+                else:
+                    # 如果解压后的是单个文件而不是目录，则删除单个文件
+                    for item in Path(extract_path).iterdir():
+                        if item.is_dir():
+                            shutil.rmtree(item)
+                        else:
+                            item.unlink()
             else:
                 # 执行单个图片推理
                 results = model_run(MODEL_PATH, uploaded_file_path)
