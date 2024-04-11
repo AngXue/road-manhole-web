@@ -1,0 +1,25 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Your Images or Zip File</title>
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2>Upload Your Images or Zip File</h2>
+        <p>Select single or multiple image files, or a zip file containing images, for YOLO inference.</p>
+
+        <!-- You may want to add 'action' attribute to specify where to send the form data -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="myfile" name="myfiles" multiple>
+            <br><br>
+            <button type="submit">Upload & Infer</button>
+        </form>
+    </div>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

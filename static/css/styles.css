@@ -1,0 +1,23 @@
+.container {
+    width: 80%;
+    margin: auto;
+    text-align: center;
+}
+
+.results {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.result-item {
+    margin: 10px;
+    width: 200px;
+}
+
+.result-item img {
+    width: 100%;
+    height: auto;
+}

@@ -1,0 +1,35 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inference Results</title>
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2>YOLO Inference Results</h2>
+        <label for="class-filter">Filter by class:</label>
+        <select id="class-filter">
+            <option value="all">All</option>
+            <option value="0">Good</option>
+            <option value="1">Broke</option>
+            <option value="2">Lose</option>
+            <option value="3">Uncovered</option>
+            <option value="4">Circle</option>
+        </select>
+
+        <div id="results" class="results">
+            {% for result in results %}
+            <div class="result-item" data-cls="{{ result.cls|join:',' }}">
+                <img src="media/save/inferred_images/{{ result.filename }}" alt="Inferred image">
+                <p>Classes: {{ result.cls|join:', ' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{% static 'js/filterResults.js' %}"></script>
+</body>
+</html>
