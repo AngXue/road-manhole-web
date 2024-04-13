@@ -85,16 +85,12 @@ WSGI_APPLICATION = 'road_manhole_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'manhole_web',
-#         'USER': 'root',
-#         'PASSWORD': '$66A112n214g16',
-#         'HOST': '127.0.0.1',
-#         'PORT': '28496',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 # Password validation

@@ -1,24 +1,30 @@
 {% load static %}
 
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Your Images or Zip File</title>
+    <title>上传图片或压缩文件</title>
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h2>Upload Your Images or Zip File</h2>
-        <p>Select single or multiple image files, or a zip file containing images, for YOLO inference.</p>
+        <h2>上传图片或压缩文件</h2>
+        <p>选择单个或多个图像文件，或包含图像的压缩文件进行YOLO推理。同时，选择用于推理的模型。</p>
 
-        <!-- You may want to add 'action' attribute to specify where to send the form data -->
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            <label for="myfile">选择图像或压缩文件：</label>
             <input type="file" id="myfile" name="myfiles" multiple>
-            <br><br>
-            <button type="submit">Upload & Infer</button>
+            <label for="model_selection">选择模型：</label>
+            <select id="model_selection" name="model_selection">
+                {% for model in models %}
+                <option value="{{ model }}">{{ model }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">上传并推理</button>
         </form>
     </div>
 </body>
 </html>
+

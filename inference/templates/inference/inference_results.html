@@ -1,18 +1,18 @@
 {% load static %}
 
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inference Results</title>
+    <title>推理结果</title>
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h2>YOLO Inference Results</h2>
-        <label for="class-filter">Filter by class:</label>
+        <h2>YOLO 推理结果</h2>
+        <label for="class-filter">按类别筛选：</label>
         <select id="class-filter">
-            <option value="all">All</option>
+            <option value="all">全部</option>
             <option value="0">Good</option>
             <option value="1">Broke</option>
             <option value="2">Lose</option>
@@ -20,11 +20,14 @@
             <option value="4">Circle</option>
         </select>
 
+        <!-- 添加返回按钮 -->
+        <button onclick="window.location.href='/'">返回上传页面</button>
+
         <div id="results" class="results">
             {% for result in results %}
             <div class="result-item" data-cls="{{ result.cls|join:',' }}">
                 <img src="media/save/inferred_images/{{ result.filename }}" alt="Inferred image">
-                <p>Classes: {{ result.cls|join:', ' }}</p>
+                <p>类别: {{ result.cls|join:', ' }}</p>
             </div>
             {% endfor %}
         </div>

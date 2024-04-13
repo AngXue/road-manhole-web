@@ -1,23 +1,94 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh; /* 确保页面至少填满整个视口高度 */
+}
+
 .container {
+    background-color: white;
     width: 80%;
-    margin: auto;
+    margin: auto; /* 水平和垂直居中 */
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
     text-align: center;
+    flex-grow: 1; /* 让容器尽可能填充剩余空间 */
+}
+
+label, button {
+    display: block;
+    margin: 20px auto;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
 }
 
 .results {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     overflow-y: auto;
-    max-height: 600px;
+    margin-top: 20px;
 }
 
 .result-item {
     margin: 10px;
-    width: 200px;
+    width: 150px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+    padding: 5px;
 }
 
 .result-item img {
     width: 100%;
-    height: auto;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.result-item p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* 媒体查询，用于小屏幕和高DPI设备 */
+@media (max-width: 600px) {
+    .container {
+        width: 95%; /* 在小屏幕上增加容器的宽度 */
+    }
+
+    .results {
+        justify-content: center; /* 在小屏幕上中心对齐结果项 */
+    }
+
+    input, select, button {
+        width: 90%; /* 调整输入框、选择框和按钮的宽度 */
+    }
 }
